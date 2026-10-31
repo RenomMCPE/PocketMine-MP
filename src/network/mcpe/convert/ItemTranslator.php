@@ -86,7 +86,9 @@ final class ItemTranslator{
 		if($blockStateData !== null){
 			$blockRuntimeId = $this->blockStateDictionary->lookupStateIdFromData($blockStateData);
 			if($blockRuntimeId === null){
-				throw new AssumptionFailedError("Unmapped blockstate returned by blockstate serializer: " . $blockStateData->toNbt());
+				//ItemTypeError (not AssumptionFailedError) so that toNetworkIdQuiet() can skip unmapped items
+				//(e.g. creative inventory entries whose blockstate changed across protocol versions) instead of crashing.
+				throw new ItemTypeSerializeException("Unmapped blockstate returned by blockstate serializer: " . $blockStateData->toNbt());
 			}
 		}else{
 			$blockRuntimeId = null;
