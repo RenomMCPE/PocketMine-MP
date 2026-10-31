@@ -27,6 +27,7 @@ declare(strict_types=1);
  */
 namespace pocketmine;
 
+use pocketmine\camera\preset\CameraPresetRegistry;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\SimpleCommandMap;
@@ -124,6 +125,7 @@ use pocketmine\world\generator\GeneratorManagerEntry;
 use pocketmine\world\generator\InvalidGeneratorOptionsException;
 use pocketmine\world\Position;
 use pocketmine\world\World;
+use pocketmine\world\backup\WorldBackupManager;
 use pocketmine\world\WorldCreationOptions;
 use pocketmine\world\WorldManager;
 use pocketmine\YmlServerProperties as Yml;
@@ -278,6 +280,8 @@ class Server{
 	private ResourcePackManager $resourceManager;
 
 	private WorldManager $worldManager;
+
+	private WorldBackupManager $backupManager;
 
 	private int $maxPlayers;
 
@@ -469,6 +473,10 @@ class Server{
 
 	public function getWorldManager() : WorldManager{
 		return $this->worldManager;
+	}
+
+	public function getBackupManager() : WorldBackupManager{
+		return $this->backupManager;
 	}
 
 	public function getAsyncPool() : AsyncPool{
@@ -1102,6 +1110,14 @@ class Server{
 			$this->worldManager = new WorldManager($this, Path::join($this->dataPath, "worlds"), $providerManager);
 			$this->worldManager->setAutoSave($this->configGroup->getConfigBool(ServerProperties::AUTO_SAVE, $this->worldManager->getAutoSave()));
 			$this->worldManager->setAutoSaveInterval($this->configGroup->getPropertyInt(Yml::TICKS_PER_AUTOSAVE, $this->worldManager->getAutoSaveInterval()));
+			$this->backupManager = new WorldBackupManager(
+				$this,
+				Path::join($this->dataPath, "backups"),
+				$this->configGroup->getPropertyBool(Yml::BACKUPS_ENABLED, false),
+				max(1, $this->configGroup->getPropertyInt(Yml::BACKUPS_INTERVAL_MINUTES, 360)) * 60,
+				max(0, $this->configGroup->getPropertyInt(Yml::BACKUPS_KEEP, 7)),
+				array_map(strval(...), (array) $this->configGroup->getProperty(Yml::BACKUPS_WORLDS, []))
+			);
 
 			$this->updater = new UpdateChecker($this, $this->configGroup->getPropertyString(Yml::AUTO_UPDATER_HOST, "update.axolotl-pm.org"));
 
@@ -1134,6 +1150,8 @@ class Server{
 				$this->forceShutdownExit();
 				return;
 			}
+
+			CameraPresetRegistry::getInstance()->freeze();
 
 			if(!$this->startupPrepareNetworkInterfaces()){
 				$this->forceShutdownExit();
@@ -1956,6 +1974,7 @@ class Server{
 		Timings::$connection->stopTiming();
 
 		if(($this->tickCounter % self::TARGET_TICKS_PER_SECOND) === 0){
+			$this->backupManager->tick();
 			if($this->doTitleTick){
 				$this->titleTick();
 			}

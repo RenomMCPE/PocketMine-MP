@@ -53,6 +53,7 @@ final class DefaultPermissionNames{
 	public const COMMAND_OP_TAKE = "pocketmine.command.op.take";
 	public const COMMAND_PARTICLE = "pocketmine.command.particle";
 	public const COMMAND_PLUGINS = "pocketmine.command.plugins";
+	public const COMMAND_PROTOCOLS = "pocketmine.command.protocols";
 	public const COMMAND_SAVE_DISABLE = "pocketmine.command.save.disable";
 	public const COMMAND_SAVE_ENABLE = "pocketmine.command.save.enable";
 	public const COMMAND_SAVE_PERFORM = "pocketmine.command.save.perform";
@@ -78,6 +79,9 @@ final class DefaultPermissionNames{
 	public const COMMAND_UNBAN_IP = "pocketmine.command.unban.ip";
 	public const COMMAND_UNBAN_PLAYER = "pocketmine.command.unban.player";
 	public const COMMAND_VERSION = "pocketmine.command.version";
+	public const COMMAND_WORLD = "pocketmine.command.world";
+	public const COMMAND_CHECKPERM = "pocketmine.command.checkperm";
+	public const COMMAND_LISTPERMS = "pocketmine.command.listperms";
 	public const COMMAND_WHITELIST_ADD = "pocketmine.command.whitelist.add";
 	public const COMMAND_WHITELIST_DISABLE = "pocketmine.command.whitelist.disable";
 	public const COMMAND_WHITELIST_ENABLE = "pocketmine.command.whitelist.enable";

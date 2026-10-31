@@ -2,19 +2,19 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *     _             _               
+ *    / \   _ __ ___ | |__   ___ _ __ 
+ *   / _ \ | '_ ` _ \| '_ \ / _ \ '__|
+ *  / ___ \| | | | | | |_) |  __/ |   
+ * /_/   \_\_| |_| |_|_.__/ \___|_|   
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @author AmberPM Team
+ * @link https://github.com/Amber-PM/Amber
  *
  *
  */
@@ -24,19 +24,20 @@ declare(strict_types=1);
 namespace pocketmine\command\defaults;
 
 use pocketmine\command\CommandSender;
-use pocketmine\command\utils\InvalidCommandSyntaxException;
+use pocketmine\command\OverloadedCommand;
 use pocketmine\entity\Attribute;
 use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\permission\DefaultPermissionNames;
+use pocketmine\player\Player;
 use pocketmine\utils\AssumptionFailedError;
 use pocketmine\utils\Limits;
 use pocketmine\utils\TextFormat;
 use function abs;
-use function count;
 use function str_ends_with;
 use function substr;
 
-class XpCommand extends VanillaCommand{
+class XpCommand extends OverloadedCommand{
+	use BoundedNumberHelperTrait;
 
 	public function __construct(){
 		parent::__construct(
@@ -48,24 +49,24 @@ class XpCommand extends VanillaCommand{
 			DefaultPermissionNames::COMMAND_XP_SELF,
 			DefaultPermissionNames::COMMAND_XP_OTHER
 		]);
+
+		$this->addOverload(
+			fn(Player $sender, string $amount) => $this->applyXp($sender, $sender, $amount),
+			DefaultPermissionNames::COMMAND_XP_SELF
+		);
+		$this->addOverload(
+			fn(CommandSender $sender, string $amount, Player $target) => $this->applyXp($sender, $target, $amount),
+			DefaultPermissionNames::COMMAND_XP_OTHER
+		);
 	}
 
-	public function execute(CommandSender $sender, string $commandLabel, array $args){
-		if(count($args) < 1){
-			throw new InvalidCommandSyntaxException();
-		}
-
-		$player = $this->fetchPermittedPlayerTarget($sender, $args[1] ?? null, DefaultPermissionNames::COMMAND_XP_SELF, DefaultPermissionNames::COMMAND_XP_OTHER);
-		if($player === null){
-			return true;
-		}
-
+	private function applyXp(CommandSender $sender, Player $player, string $amount) : bool{
 		$xpManager = $player->getXpManager();
-		if(str_ends_with($args[0], "L")){
+		if(str_ends_with($amount, "L")){
 			$xpLevelAttr = $player->getAttributeMap()->get(Attribute::EXPERIENCE_LEVEL) ?? throw new AssumptionFailedError();
 			$maxXpLevel = (int) $xpLevelAttr->getMaxValue();
 			$currentXpLevel = $xpManager->getXpLevel();
-			$xpLevels = $this->getInteger($sender, substr($args[0], 0, -1), -$currentXpLevel, $maxXpLevel - $currentXpLevel);
+			$xpLevels = $this->getInteger($sender, substr($amount, 0, -1), -$currentXpLevel, $maxXpLevel - $currentXpLevel);
 			if($xpLevels >= 0){
 				$xpManager->addXpLevels($xpLevels, false);
 				$sender->sendMessage(KnownTranslationFactory::commands_xp_success_levels((string) $xpLevels, $player->getName()));
@@ -75,7 +76,7 @@ class XpCommand extends VanillaCommand{
 				$sender->sendMessage(KnownTranslationFactory::commands_xp_success_negative_levels((string) $xpLevels, $player->getName()));
 			}
 		}else{
-			$xp = $this->getInteger($sender, $args[0], max: Limits::INT32_MAX);
+			$xp = $this->getInteger($sender, $amount, max: Limits::INT32_MAX);
 			if($xp < 0){
 				$sender->sendMessage(KnownTranslationFactory::commands_xp_failure_widthdrawXp()->prefix(TextFormat::RED));
 			}else{

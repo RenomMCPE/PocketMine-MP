@@ -26,6 +26,7 @@ namespace pocketmine\command;
 use pocketmine\command\defaults\BanCommand;
 use pocketmine\command\defaults\BanIpCommand;
 use pocketmine\command\defaults\BanListCommand;
+use pocketmine\command\defaults\CheckPermCommand;
 use pocketmine\command\defaults\ClearCommand;
 use pocketmine\command\defaults\DefaultGamemodeCommand;
 use pocketmine\command\defaults\DeopCommand;
@@ -40,12 +41,14 @@ use pocketmine\command\defaults\HelpCommand;
 use pocketmine\command\defaults\KickCommand;
 use pocketmine\command\defaults\KillCommand;
 use pocketmine\command\defaults\ListCommand;
+use pocketmine\command\defaults\ListPermsCommand;
 use pocketmine\command\defaults\MeCommand;
 use pocketmine\command\defaults\OpCommand;
 use pocketmine\command\defaults\PardonCommand;
 use pocketmine\command\defaults\PardonIpCommand;
 use pocketmine\command\defaults\ParticleCommand;
 use pocketmine\command\defaults\PluginsCommand;
+use pocketmine\command\defaults\ProtocolsCommand;
 use pocketmine\command\defaults\SaveCommand;
 use pocketmine\command\defaults\SaveOffCommand;
 use pocketmine\command\defaults\SaveOnCommand;
@@ -64,6 +67,7 @@ use pocketmine\command\defaults\TransferServerCommand;
 use pocketmine\command\defaults\VanillaCommand;
 use pocketmine\command\defaults\VersionCommand;
 use pocketmine\command\defaults\WhitelistCommand;
+use pocketmine\command\defaults\WorldCommand;
 use pocketmine\command\defaults\XpCommand;
 use pocketmine\command\utils\CommandStringHelper;
 use pocketmine\command\utils\InvalidCommandSyntaxException;
@@ -98,6 +102,7 @@ class SimpleCommandMap implements CommandMap{
 			new BanCommand(),
 			new BanIpCommand(),
 			new BanListCommand(),
+			new CheckPermCommand(),
 			new ClearCommand(),
 			new DefaultGamemodeCommand(),
 			new DeopCommand(),
@@ -112,12 +117,14 @@ class SimpleCommandMap implements CommandMap{
 			new KickCommand(),
 			new KillCommand(),
 			new ListCommand(),
+			new ListPermsCommand(),
 			new MeCommand(),
 			new OpCommand(),
 			new PardonCommand(),
 			new PardonIpCommand(),
 			new ParticleCommand(),
 			new PluginsCommand(),
+			new ProtocolsCommand(),
 			new SaveCommand(),
 			new SaveOffCommand(),
 			new SaveOnCommand(),
@@ -135,6 +142,7 @@ class SimpleCommandMap implements CommandMap{
 			new TransferServerCommand(),
 			new VersionCommand(),
 			new WhitelistCommand(),
+			new WorldCommand(),
 			new XpCommand(),
 		]);
 	}
@@ -188,12 +196,15 @@ class SimpleCommandMap implements CommandMap{
 	}
 
 	private function registerAlias(Command $command, bool $isAlias, string $fallbackPrefix, string $label) : bool{
-		$this->knownCommands[$fallbackPrefix . ":" . $label] = $command;
-		if(($command instanceof VanillaCommand || $isAlias) && isset($this->knownCommands[$label])){
+		$lowerFallbackLabel = strtolower($fallbackPrefix . ":" . $label);
+		$lowerLabel = strtolower($label);
+
+		$this->knownCommands[$lowerFallbackLabel] = $command;
+		if(($command instanceof VanillaCommand || $isAlias) && isset($this->knownCommands[$lowerLabel])){
 			return false;
 		}
 
-		if(isset($this->knownCommands[$label]) && $this->knownCommands[$label]->getLabel() === $label){
+		if(isset($this->knownCommands[$lowerLabel]) && strtolower($this->knownCommands[$lowerLabel]->getLabel()) === $lowerLabel){
 			return false;
 		}
 
@@ -201,7 +212,7 @@ class SimpleCommandMap implements CommandMap{
 			$command->setLabel($label);
 		}
 
-		$this->knownCommands[$label] = $command;
+		$this->knownCommands[$lowerLabel] = $command;
 
 		return true;
 	}
@@ -239,7 +250,7 @@ class SimpleCommandMap implements CommandMap{
 	}
 
 	public function getCommand(string $name) : ?Command{
-		return $this->knownCommands[$name] ?? null;
+		return $this->knownCommands[strtolower($name)] ?? null;
 	}
 
 	/**

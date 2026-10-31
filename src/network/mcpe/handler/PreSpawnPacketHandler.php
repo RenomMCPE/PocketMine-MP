@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\handler;
 
+use pocketmine\camera\preset\CameraPresetRegistry;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\cache\CraftingDataCache;
 use pocketmine\network\mcpe\cache\StaticPacketCache;
@@ -58,6 +59,8 @@ use function sprintf;
 #[SilentDiscard(PlayerAuthInputPacket::class, comment: "Spammed after StartGame even though player has no controls")]
 #[SilentDiscard(ServerboundLoadingScreenPacket::class, "Not needed")]
 class PreSpawnPacketHandler extends PacketHandler{
+	use PacketViolationWarningTrait;
+
 	public function __construct(
 		private Server $server,
 		private Player $player,
@@ -145,6 +148,9 @@ class PreSpawnPacketHandler extends PacketHandler{
 
 			$this->session->getLogger()->debug("Sending biome definitions");
 			$this->session->sendDataPacket(StaticPacketCache::getInstance()->getBiomeDefs($this->session->getProtocolId()));
+
+			$this->session->getLogger()->debug("Sending camera presets");
+			$this->session->sendDataPacket(CameraPresetRegistry::getInstance()->getPresetsPacket($this->session->getProtocolId()));
 
 			$this->session->getLogger()->debug("Sending attributes");
 			$this->session->getEntityEventBroadcaster()->syncAttributes([$this->session], $this->player, $this->player->getAttributeMap()->getAll());

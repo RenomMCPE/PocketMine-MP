@@ -26,6 +26,18 @@ namespace pocketmine\network\mcpe;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\DataDecodeException;
+use pocketmine\command\OverloadedCommand;
+use pocketmine\command\overload\ArgumentParser;
+use pocketmine\command\overload\BoolArgumentParser;
+use pocketmine\command\overload\StringArgumentParser;
+use pocketmine\command\overload\DynamicEnumArgumentParser;
+use pocketmine\command\overload\IntegerArgumentParser;
+use pocketmine\command\overload\FloatArgumentParser;
+use pocketmine\command\overload\PlayerArgumentParser;
+use pocketmine\command\overload\PlayerOrSelfArgumentParser;
+use pocketmine\command\overload\Vector3ArgumentParser;
+use pocketmine\command\overload\GreedyStringArgumentParser;
+use pocketmine\command\overload\ItemArgumentParser;
 use pocketmine\entity\effect\EffectInstance;
 use pocketmine\event\player\PlayerDuplicateLoginEvent;
 use pocketmine\event\player\PlayerIdentityVerifyEvent;
@@ -1277,15 +1289,20 @@ class NetworkSession{
 			}
 
 			$description = $command->getDescription();
+			$overloads = $command instanceof OverloadedCommand ? $this->buildCommandHintOverloads($command) : [];
+			if($overloads === []){
+				$overloads = [
+					new CommandOverload(chaining: false, parameters: [CommandParameter::standard("args", AvailableCommandsPacket::convertArg($this->getProtocolId(), AvailableCommandsPacket::ARG_TYPE_RAWTEXT), 0, true)])
+				];
+			}
+
 			$data = new CommandData(
 				$lname, //TODO: commands containing uppercase letters in the name crash 1.9.0 client
 				$description instanceof Translatable ? $this->player->getLanguage()->translate($description) : $description,
 				0,
 				CommandPermissions::NORMAL,
 				$aliasObj,
-				[
-					new CommandOverload(chaining: false, parameters: [CommandParameter::standard("args", AvailableCommandsPacket::convertArg($this->getProtocolId(), AvailableCommandsPacket::ARG_TYPE_RAWTEXT), 0, true)])
-				],
+				$overloads,
 				chainedSubCommandData: []
 			);
 
@@ -1293,6 +1310,65 @@ class NetworkSession{
 		}
 
 		$this->sendDataPacket(AvailableCommandsPacketAssembler::assemble(array_values($commandData), [], []));
+	}
+
+	/**
+	 * @return CommandOverload[]
+	 */
+	private function buildCommandHintOverloads(OverloadedCommand $command) : array{
+		$result = [];
+		foreach($command->getOverloads() as $overload){
+			if($overload->getPermission() !== null && !$this->player->hasPermission($overload->getPermission())){
+				continue;
+			}
+			if(!$overload->acceptsSender($this->player)){
+				continue;
+			}
+
+			$parameters = [];
+			foreach($overload->getParameterDefinitions() as $definition){
+				$parameters[] = $this->buildCommandHintParameter($command->getLabel(), $definition["name"], $definition["parser"], $definition["optional"]);
+			}
+
+			$result[] = new CommandOverload(chaining: false, parameters: $parameters);
+		}
+
+		return $result;
+	}
+
+	private function buildCommandHintParameter(string $label, string $name, ArgumentParser $parser, bool $optional) : CommandParameter{
+		if($parser instanceof BoolArgumentParser){
+			return CommandParameter::enum($name, new CommandHardEnum(ucfirst($label) . ucfirst($name) . "Bool", ["true", "false"]), 0, $optional);
+		}
+
+		if($parser instanceof StringArgumentParser && ($allowedValues = $parser->getAllowedValues()) !== null){
+			return CommandParameter::enum($name, new CommandHardEnum(ucfirst($label) . ucfirst($name) . "Enum", $allowedValues), 0, $optional);
+		}
+
+		if($parser instanceof DynamicEnumArgumentParser){
+			return CommandParameter::enum($name, new CommandHardEnum(ucfirst($label) . ucfirst($name) . "Enum", $parser->getValues()), 0, $optional);
+		}
+
+		// with this item icon should appear in the tab completion menu or atleast thats what i think
+		if($parser instanceof ItemArgumentParser){
+			$itemIds = [];
+			foreach($this->typeConverter->getItemTypeDictionary()->getEntries() as $entry){
+				$itemIds[] = $entry->getStringId();
+			}
+			return CommandParameter::enum($name, new CommandHardEnum("Item", $itemIds), 0, $optional);
+		}
+
+		$type = match(true){
+			$parser instanceof IntegerArgumentParser => AvailableCommandsPacket::ARG_TYPE_INT,
+			$parser instanceof FloatArgumentParser => AvailableCommandsPacket::ARG_TYPE_FLOAT,
+			$parser instanceof PlayerArgumentParser => AvailableCommandsPacket::ARG_TYPE_TARGET,
+			$parser instanceof PlayerOrSelfArgumentParser => AvailableCommandsPacket::ARG_TYPE_TARGET,
+			$parser instanceof Vector3ArgumentParser => AvailableCommandsPacket::ARG_TYPE_POSITION,
+			$parser instanceof GreedyStringArgumentParser => AvailableCommandsPacket::ARG_TYPE_RAWTEXT,
+			default => AvailableCommandsPacket::ARG_TYPE_STRING,
+		};
+
+		return CommandParameter::standard($name, AvailableCommandsPacket::convertArg($this->getProtocolId(), $type), 0, $optional);
 	}
 
 	/**
