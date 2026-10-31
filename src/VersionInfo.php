@@ -64,7 +64,9 @@ final class VersionInfo{
 			if(\Phar::running(true) === ""){
 				$gitHash = Git::getRepositoryStatePretty(\pocketmine\PATH);
 			}else{
-				$pharPath = \Phar::running(false);
+				//the running code is inside the extracted phar cache, so the metadata has to be read from the
+				//original phar file itself
+				$pharPath = \pocketmine\ORIGINAL_PHAR_PATH;
 				$phar = \Phar::isValidPharFilename($pharPath) ? new \Phar($pharPath) : new \PharData($pharPath);
 				$meta = $phar->getMetadata();
 				if(isset($meta["git"])){
@@ -84,7 +86,7 @@ final class VersionInfo{
 		if(self::$buildNumber === null){
 			self::$buildNumber = 0;
 			if(\Phar::running(true) !== ""){
-				$pharPath = \Phar::running(false);
+				$pharPath = \pocketmine\ORIGINAL_PHAR_PATH; //see GIT_HASH()
 				$phar = \Phar::isValidPharFilename($pharPath) ? new \Phar($pharPath) : new \PharData($pharPath);
 				$meta = $phar->getMetadata();
 				if(is_array($meta) && isset($meta["build"]) && is_int($meta["build"])){
