@@ -3,6 +3,11 @@
 	<b>A multiversion server software for Minecraft: Bedrock Edition written in PHP</b>
 </p>
 
+<p align="center">
+	<a href="https://github.com/RenomMCPE/PocketMine-MP/actions/workflows/ci.yml"><img src="https://github.com/RenomMCPE/PocketMine-MP/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+	<a href="https://github.com/RenomMCPE/PocketMine-MP/releases/latest"><img alt="GitHub release" src="https://img.shields.io/github/v/release/RenomMCPE/PocketMine-MP?sort=semver"></a>
+</p>
+
 ## What is this?
 This is a multiversion fork of PocketMine-MP, a highly customisable server software for Minecraft: Bedrock Edition written in PHP. Players on a wide range of Bedrock versions — from **1.20.0 up to 1.26.60** — can connect to the same server.
 

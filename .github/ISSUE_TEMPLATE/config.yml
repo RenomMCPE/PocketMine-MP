@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Help & support on Discord
-    url: https://discord.gg/bmSAZBG
+    url: https://discord.axolotl-pm.org
     about: We don't accept support requests on the issue tracker. Please try asking on Discord instead.
   - name: Documentation
     url: https://pmmp.rtfd.io

@@ -186,7 +186,7 @@ level-settings:
   #The default format that worlds will use when created
   default-format: leveldb
   #The minimum Y level an entity can go before taking damage from the void
-  #Default PM sets this as -80 but NetherGames makes this configurable and the default is 0
+  #Default PM sets this as -80; this fork makes it configurable with a default of 0
   min-y: 0
 
 chunk-sending:
@@ -230,7 +230,8 @@ anonymous-statistics:
   host: stats.pocketmine.net
 
 auto-updater:
-  enabled: true
+  #RenomMCPE has no update API server. Check https://github.com/RenomMCPE/PocketMine-MP/releases for new versions.
+  enabled: false
   on-update:
     warn-console: true
   #Can be development, alpha, beta or stable.

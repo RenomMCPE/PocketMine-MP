@@ -1,6 +1,6 @@
 #Prebuilt PHP needs glibc 2.38+
 FROM ubuntu:resolute AS build-php
-ARG PHP_BINARY_URL="https://github.com/NetherGamesMC/php-build-scripts/releases/download/pm5-php-8.5-latest/PHP-8.5-Linux-x86_64-PM5.tar.gz"
+ARG PHP_BINARY_URL="https://github.com/pmmp/PHP-Binaries/releases/download/pm5-php-8.3-latest/PHP-8.3-Linux-x86_64-PM5.tar.gz"
 
 WORKDIR /opt/pocketmine
 ADD ${PHP_BINARY_URL} /tmp/php.tar.gz

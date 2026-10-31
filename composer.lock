@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7a41ca76d36b618743e5c99b5cb3ddd5",
+    "content-hash": "c68e2446fe3f8c07daed893bfeb28473",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -1338,7 +1338,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-04-01T09:25:14+00:00"
+            "time": "2026-04-01T09:25:14+00:00",
+            "published-time": "2026-04-01T09:25:26+00:00"
         },
         {
             "name": "phpstan/phpstan-phpunit",
@@ -2922,5 +2923,5 @@
     "platform-overrides": {
         "php": "8.1.0"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }

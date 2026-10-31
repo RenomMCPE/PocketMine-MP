@@ -1,5 +1,5 @@
 # PocketMine-MP Docker image
-This folder contains the files used to build and test the `nethergamesmc/pocketmine-mp` Docker image.
+This folder contains the files used to build and test the `renommcpe/pocketmine-mp` Docker image.
 
 Docker is an easy, safe way to run software in a container where it can't affect anything else on your machine.
 You don't need to build any dependencies, and updating is as simple as changing the version number of the image you're using.
@@ -15,15 +15,15 @@ mkdir wherever-you-want
 cd wherever-you-want
 mkdir data plugins
 sudo chown -R 1000:1000 data plugins
-docker run -it -p 19132:19132/udp -v $PWD/data:/data -v $PWD/plugins:/plugins nethergamesmc/pocketmine-mp
+docker run -it -p 19132:19132/udp -v $PWD/data:/data -v $PWD/plugins:/plugins renommcpe/pocketmine-mp
 ```
 
 > [!NOTE]
-> The image is also published to the GitHub Container Registry. To use it, prefix the image name with `ghcr.io/` (e.g. `ghcr.io/nethergamesmc/pocketmine-mp`).
+> The image is also published to the GitHub Container Registry. To use it, prefix the image name with `ghcr.io/` (e.g. `ghcr.io/renommcpe/pocketmine-mp`).
 
 To run a specific version, just add it to the end of the command, like this:
 ```
-docker run -it -p 19132:19132/udp -v $PWD/data:/data -v $PWD/plugins:/plugins nethergamesmc/pocketmine-mp:5.50.0-dev
+docker run -it -p 19132:19132/udp -v $PWD/data:/data -v $PWD/plugins:/plugins renommcpe/pocketmine-mp:5.50.0-dev
 ```
 
 ## Changing the server port
@@ -62,7 +62,7 @@ Use `docker ps` to see a list of running containers. It will look like this:
 ```
 user@DYLANS-PC:~/pm-docker-test$ docker ps
 CONTAINER ID   IMAGE                                    COMMAND                  CREATED         STATUS         PORTS                                                                              NAMES
-dc20edd3dd62   nethergamesmc/pocketmine-mp:5.50.0-dev   "start-pocketmine"       7 seconds ago   Up 6 seconds   19132/tcp, 0.0.0.0:19132-19133->19132-19133/udp, :::19132-19133->19132-19133/udp   brave_dijkstra
+dc20edd3dd62   renommcpe/pocketmine-mp:5.50.0-dev   "start-pocketmine"       7 seconds ago   Up 6 seconds   19132/tcp, 0.0.0.0:19132-19133->19132-19133/udp, :::19132-19133->19132-19133/udp   brave_dijkstra
 ```
 In this case, the container name is `brave_dijkstra`, but it might be something else in your case.
 
