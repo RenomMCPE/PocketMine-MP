@@ -405,6 +405,8 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("diorite_wall", fn() => Blocks::DIORITE_WALL());
 		$result->registerBlock("dirt", fn() => Blocks::DIRT()->setDirtType(DirtType::NORMAL));
 		$result->registerBlock("dirt_with_roots", fn() => Blocks::DIRT()->setDirtType(DirtType::ROOTED));
+		$result->registerBlock("dispenser", fn() => Blocks::DISPENSER());
+		$result->registerBlock("dropper", fn() => Blocks::DROPPER());
 		$result->registerBlock("door_block", fn() => Blocks::OAK_DOOR());
 		$result->registerBlock("double_plant", fn() => Blocks::SUNFLOWER());
 		$result->registerBlock("double_red_sandstone_slab", fn() => Blocks::RED_SANDSTONE_SLAB()->setSlabType(SlabType::DOUBLE));
@@ -735,6 +737,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("hardened_glass", fn() => Blocks::HARDENED_GLASS());
 		$result->registerBlock("hardened_glass_pane", fn() => Blocks::HARDENED_GLASS_PANE());
 		$result->registerBlock("hay_bale", fn() => Blocks::HAY_BALE());
+		$result->registerBlock("honey_block", fn() => Blocks::HONEY_BLOCK());
 		$result->registerBlock("hay_block", fn() => Blocks::HAY_BALE());
 		$result->registerBlock("heavy_core", fn() => Blocks::HEAVY_CORE());
 		$result->registerBlock("heavy_weighted_pressure_plate", fn() => Blocks::WEIGHTED_PRESSURE_PLATE_HEAVY());
@@ -927,6 +930,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("pink_petals", fn() => Blocks::PINK_PETALS());
 		$result->registerBlock("pink_tulip", fn() => Blocks::PINK_TULIP());
 		$result->registerBlock("piglin_head", fn() => Blocks::MOB_HEAD()->setMobHeadType(MobHeadType::PIGLIN));
+		$result->registerBlock("piston", fn() => Blocks::PISTON());
 		$result->registerBlock("pitcher_plant", fn() => Blocks::PITCHER_PLANT());
 		$result->registerBlock("plank", fn() => Blocks::OAK_PLANKS());
 		$result->registerBlock("planks", fn() => Blocks::OAK_PLANKS());
@@ -1120,6 +1124,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("still_lava", fn() => Blocks::LAVA()->setStill(true));
 		$result->registerBlock("still_water", fn() => Blocks::WATER()->setStill(true));
 		$result->registerBlock("stone", fn() => Blocks::STONE());
+		$result->registerBlock("sticky_piston", fn() => Blocks::STICKY_PISTON());
 		$result->registerBlock("stone_brick", fn() => Blocks::STONE_BRICKS());
 		$result->registerBlock("stone_brick_slab", fn() => Blocks::STONE_BRICK_SLAB());
 		$result->registerBlock("stone_brick_stairs", fn() => Blocks::STONE_BRICK_STAIRS());

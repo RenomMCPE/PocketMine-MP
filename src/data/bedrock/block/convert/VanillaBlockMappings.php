@@ -26,6 +26,9 @@ namespace pocketmine\data\bedrock\block\convert;
 use pocketmine\block\ActivatorRail;
 use pocketmine\block\AmethystCluster;
 use pocketmine\block\Anvil;
+use pocketmine\block\Dispenser;
+use pocketmine\block\Dropper;
+use pocketmine\block\PistonHead;
 use pocketmine\block\Bamboo;
 use pocketmine\block\BambooSapling;
 use pocketmine\block\Barrel;
@@ -103,8 +106,8 @@ use pocketmine\block\utils\FroglightType;
 use pocketmine\block\utils\HorizontalFacing;
 use pocketmine\block\utils\LeverFacing;
 use pocketmine\block\utils\MobHeadType;
-use pocketmine\block\utils\MushroomBlockType;
 use pocketmine\block\utils\PoweredByRedstone;
+use pocketmine\block\utils\MushroomBlockType;
 use pocketmine\block\utils\RedstoneWireConnectionType;
 use pocketmine\block\VanillaBlocks as Blocks;
 use pocketmine\block\Vine;
@@ -1383,6 +1386,17 @@ final class VanillaBlockMappings{
 			new IntProperty(StateNames::RAIL_DIRECTION, 0, 5, fn(StraightOnlyRail $b) => $b->getShape(), fn(StraightOnlyRail $b, int $v) => $b->setShape($v)) //TODO: shared with ActivatorRail
 		]));
 
+		$reg->mapSimple(Blocks::MOVING_BLOCK(), Ids::MOVING_BLOCK);
+		$reg->mapSimple(Blocks::HONEY_BLOCK(), Ids::HONEY_BLOCK);
+		$reg->mapModel(Model::create(Blocks::DISPENSER(), Ids::DISPENSER)->properties([
+			new BoolProperty(StateNames::TRIGGERED_BIT, fn(PoweredByRedstone $b) => $b->isPowered(), fn(PoweredByRedstone $b, bool $v) => $b->setPowered($v)),
+			new ValueFromIntProperty(StateNames::FACING_DIRECTION, ValueMappings::getInstance()->facing, fn(Dispenser $b) => $b->getFacing(), fn(Dispenser $b, int $v) => $b->setFacing($v)),
+		]));
+		$reg->mapModel(Model::create(Blocks::DROPPER(), Ids::DROPPER)->properties([
+			new BoolProperty(StateNames::TRIGGERED_BIT, fn(PoweredByRedstone $b) => $b->isPowered(), fn(PoweredByRedstone $b, bool $v) => $b->setPowered($v)),
+			new ValueFromIntProperty(StateNames::FACING_DIRECTION, ValueMappings::getInstance()->facing, fn(Dropper $b) => $b->getFacing(), fn(Dropper $b, int $v) => $b->setFacing($v)),
+		]));
+
 		//E
 		$reg->mapModel(Model::create(Blocks::ENDER_CHEST(), Ids::ENDER_CHEST)->properties([$commonProperties->horizontalFacingCardinal]));
 		$reg->mapModel(Model::create(Blocks::END_PORTAL_FRAME(), Ids::END_PORTAL_FRAME)->properties([
@@ -1467,6 +1481,7 @@ final class VanillaBlockMappings{
 		$reg->mapModel(Model::create(Blocks::PITCHER_PLANT(), Ids::PITCHER_PLANT)->properties([
 			new BoolProperty(StateNames::UPPER_BLOCK_BIT, fn(DoublePlant $b) => $b->isTop(), fn(DoublePlant $b, bool $v) => $b->setTop($v)), //TODO: don't we have helpers for this?
 		]));
+		$reg->mapModel(Model::create(Blocks::PISTON(), Ids::PISTON)->properties([$commonProperties->anyFacingPiston]));
 		$reg->mapModel(Model::create(Blocks::POLISHED_BASALT(), Ids::POLISHED_BASALT)->properties([$commonProperties->pillarAxis]));
 		$reg->mapModel(Model::create(Blocks::POLISHED_BLACKSTONE_BUTTON(), Ids::POLISHED_BLACKSTONE_BUTTON)->properties($commonProperties->buttonProperties));
 		$reg->mapModel(Model::create(Blocks::POLISHED_BLACKSTONE_PRESSURE_PLATE(), Ids::POLISHED_BLACKSTONE_PRESSURE_PLATE)->properties($commonProperties->simplePressurePlateProperties));
@@ -1489,19 +1504,7 @@ final class VanillaBlockMappings{
 		$reg->mapModel(Model::create(Blocks::RAIL(), Ids::RAIL)->properties([
 			new IntProperty(StateNames::RAIL_DIRECTION, 0, 9, fn(Rail $b) => $b->getShape(), fn(Rail $b, int $v) => $b->setShape($v))
 		]));
-		$redstoneWireConnection = fn(string $stateName, int $facing) => new ValueFromStringProperty(
-			$stateName,
-			ValueMappings::getInstance()->redstoneWireConnectionType,
-			fn(RedstoneWire $b) => $b->getConnection($facing),
-			fn(RedstoneWire $b, RedstoneWireConnectionType $v) => $b->setConnection($facing, $v)
-		);
-		$reg->mapModel(Model::create(Blocks::REDSTONE_WIRE(), Ids::REDSTONE_WIRE)->properties([
-			$commonProperties->analogRedstoneSignal,
-			$redstoneWireConnection(StateNames::REDSTONE_EAST, Facing::EAST),
-			$redstoneWireConnection(StateNames::REDSTONE_NORTH, Facing::NORTH),
-			$redstoneWireConnection(StateNames::REDSTONE_SOUTH, Facing::SOUTH),
-			$redstoneWireConnection(StateNames::REDSTONE_WEST, Facing::WEST),
-		]));
+		$reg->mapModel(Model::create(Blocks::REDSTONE_WIRE(), Ids::REDSTONE_WIRE)->properties([$commonProperties->analogRedstoneSignal]));
 		$reg->mapModel(Model::create(Blocks::RESPAWN_ANCHOR(), Ids::RESPAWN_ANCHOR)->properties([
 			new IntProperty(StateNames::RESPAWN_ANCHOR_CHARGE, 0, 4, fn(RespawnAnchor $b) => $b->getCharges(), fn(RespawnAnchor $b, int $v) => $b->setCharges($v))
 		]));
@@ -1529,6 +1532,7 @@ final class VanillaBlockMappings{
 		$reg->mapModel(Model::create(Blocks::SOUL_LANTERN(), Ids::SOUL_LANTERN)->properties([
 			new BoolProperty(StateNames::HANGING, fn(Lantern $b) => $b->isHanging(), fn(Lantern $b, bool $v) => $b->setHanging($v)) //TODO: repeated
 		]));
+		$reg->mapModel(Model::create(Blocks::STICKY_PISTON(), Ids::STICKY_PISTON)->properties([$commonProperties->anyFacingPiston]));
 		$reg->mapModel(Model::create(Blocks::STONE_BUTTON(), Ids::STONE_BUTTON)->properties($commonProperties->buttonProperties));
 		$reg->mapModel(Model::create(Blocks::STONE_PRESSURE_PLATE(), Ids::STONE_PRESSURE_PLATE)->properties($commonProperties->simplePressurePlateProperties));
 		$reg->mapModel(Model::create(Blocks::STONECUTTER(), Ids::STONECUTTER_BLOCK)->properties([
@@ -1769,5 +1773,11 @@ final class VanillaBlockMappings{
 				default => self::deserializeAsymmetric($cyclingPotentSulfurModel, $in)
 			}
 		);
+
+		$reg->serializer->map(Blocks::PISTON_HEAD(), fn(PistonHead $b) => Writer::create($b->isSticky() ? Ids::STICKY_PISTON_ARM_COLLISION : Ids::PISTON_ARM_COLLISION)
+			->writeInt(StateNames::FACING_DIRECTION, (int) ValueMappings::getInstance()->facingEndRod->valueToRaw($b->getFacing()))
+		);
+		$reg->deserializer->map(Ids::PISTON_ARM_COLLISION, fn(Reader $in) => Blocks::PISTON_HEAD()->setFacing((int) ValueMappings::getInstance()->facingEndRod->rawToValue($in->readFacingDirection()))->setSticky(false));
+		$reg->deserializer->map(Ids::STICKY_PISTON_ARM_COLLISION, fn(Reader $in) => Blocks::PISTON_HEAD()->setFacing((int) ValueMappings::getInstance()->facingEndRod->rawToValue($in->readFacingDirection()))->setSticky(true));
 	}
 }

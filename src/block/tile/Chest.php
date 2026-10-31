@@ -2,19 +2,19 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *     _             _
+ *    / \   _ __ ___ | |__   ___ _ __
+ *   / _ \ | '_ ` _ \| '_ \ / _ \ '__|
+ *  / ___ \| | | | | | |_) |  __/ |
+ * /_/   \_\_| |_| |_|_.__/ \___|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @author AmberPM Team
+ * @link https://github.com/Amber-PM/Amber
  *
  *
  */
@@ -163,7 +163,11 @@ class Chest extends Spawnable implements Container, Nameable{
 
 	public function getPair() : ?Chest{
 		if($this->isPaired()){
-			$tile = $this->position->getWorld()->getTileAt($this->pairX, $this->position->y, $this->pairZ);
+			$world = $this->position->getWorld();
+			if(!$world->isChunkLoaded($this->pairX >> Chunk::COORD_BIT_SIZE, $this->pairZ >> Chunk::COORD_BIT_SIZE)){
+				return null;
+			}
+			$tile = $world->getTileAt($this->pairX, $this->position->y, $this->pairZ);
 			if($tile instanceof Chest){
 				return $tile;
 			}
@@ -200,6 +204,8 @@ class Chest extends Spawnable implements Container, Nameable{
 		}
 
 		$tile = $this->getPair();
+		$this->doubleInventory?->removeAllViewers();
+		$tile?->doubleInventory?->removeAllViewers();
 		$this->pairX = $this->pairZ = null;
 
 		$this->clearSpawnCompoundCache();

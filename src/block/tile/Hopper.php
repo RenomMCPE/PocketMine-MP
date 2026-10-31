@@ -2,19 +2,19 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *     _             _
+ *    / \   _ __ ___ | |__   ___ _ __
+ *   / _ \ | '_ ` _ \| '_ \ / _ \ '__|
+ *  / ___ \| | | | | | |_) |  __/ |
+ * /_/   \_\_| |_| |_|_.__/ \___|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @author AmberPM Team
+ * @link https://github.com/Amber-PM/Amber
  *
  *
  */
@@ -27,6 +27,7 @@ use pocketmine\block\inventory\HopperInventory;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\world\World;
+use function max;
 
 class Hopper extends Spawnable implements Container, Nameable{
 
@@ -37,6 +38,7 @@ class Hopper extends Spawnable implements Container, Nameable{
 
 	private HopperInventory $inventory;
 	private int $transferCooldown = 0;
+	private ?int $lastCooldownTick = null;
 
 	public function __construct(World $world, Vector3 $pos){
 		parent::__construct($world, $pos);
@@ -47,7 +49,7 @@ class Hopper extends Spawnable implements Container, Nameable{
 		$this->loadItems($nbt);
 		$this->loadName($nbt);
 
-		$this->transferCooldown = $nbt->getInt(self::TAG_TRANSFER_COOLDOWN, 0);
+		$this->transferCooldown = max(0, $nbt->getInt(self::TAG_TRANSFER_COOLDOWN, 0));
 	}
 
 	protected function writeSaveData(CompoundTag $nbt) : void{
@@ -55,6 +57,21 @@ class Hopper extends Spawnable implements Container, Nameable{
 		$this->saveName($nbt);
 
 		$nbt->setInt(self::TAG_TRANSFER_COOLDOWN, $this->transferCooldown);
+	}
+
+	public function getTransferCooldown() : int{ return $this->transferCooldown; }
+
+	public function startTransferCooldown(int $currentTick, int $delay) : void{
+		$this->transferCooldown = max(0, $delay);
+		$this->lastCooldownTick = $currentTick;
+	}
+
+	public function resetCooldownClock() : void{ $this->lastCooldownTick = null; }
+
+	public function advanceTransferCooldown(int $currentTick) : void{
+		$elapsed = $this->lastCooldownTick === null ? 1 : max(0, $currentTick - $this->lastCooldownTick);
+		$this->lastCooldownTick = $currentTick;
+		$this->transferCooldown = max(0, $this->transferCooldown - $elapsed);
 	}
 
 	public function close() : void{

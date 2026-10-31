@@ -2,19 +2,19 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *     _             _
+ *    / \   _ __ ___ | |__   ___ _ __
+ *   / _ \ | '_ ` _ \| '_ \ / _ \ '__|
+ *  / ___ \| | | | | | |_) |  __/ |
+ * /_/   \_\_| |_| |_|_.__/ \___|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @author AmberPM Team
+ * @link https://github.com/Amber-PM/Amber
  *
  *
  */
@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
+use pocketmine\block\utils\DelayedRedstoneReceiver;
 use pocketmine\block\utils\RedstoneSignalEmitter;
 use pocketmine\block\utils\StaticSupportTrait;
 use pocketmine\block\utils\SupportType;
@@ -31,11 +32,13 @@ use pocketmine\event\block\PressurePlateUpdateEvent;
 use pocketmine\math\Axis;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Facing;
+use pocketmine\world\redstone\RedstoneEngine;
 use pocketmine\world\sound\PressurePlateActivateSound;
 use pocketmine\world\sound\PressurePlateDeactivateSound;
 use function count;
+use const PHP_INT_MAX;
 
-abstract class PressurePlate extends Transparent implements RedstoneSignalEmitter{
+abstract class PressurePlate extends Transparent implements RedstoneSignalEmitter, DelayedRedstoneReceiver{
 	use StaticSupportTrait;
 
 	private readonly int $deactivationDelayTicks;
@@ -72,9 +75,33 @@ abstract class PressurePlate extends Transparent implements RedstoneSignalEmitte
 
 	public function onEntityInside(Entity $entity) : bool{
 		if(!$this->hasOutputSignal()){
-			$this->position->getWorld()->scheduleDelayedBlockUpdate($this->position, 0);
+			$this->scheduleUpdate(1);
 		}
 		return true;
+	}
+
+	private function scheduleUpdate(int $delay) : void{
+		$world = $this->position->getWorld();
+		$engine = $world->getRedstoneEngine();
+		if($engine !== null){
+			$engine->schedule($this->position, $delay, $this->getStateId());
+		}else{
+			$world->scheduleDelayedBlockUpdate($this->position, $delay);
+		}
+	}
+
+	protected function getMaximumSignalEntityCount() : int{
+		return PHP_INT_MAX;
+	}
+
+	public function onRedstoneScheduledUpdate(RedstoneEngine $engine) : void{
+		$this->onScheduledUpdate();
+	}
+
+	public function onRedstoneUpdate(RedstoneEngine $engine) : void{
+		if($this->hasOutputSignal() && !$engine->isScheduled($this->position)){
+			$this->scheduleUpdate($this->deactivationDelayTicks);
+		}
 	}
 
 	/**
@@ -123,7 +150,19 @@ abstract class PressurePlate extends Transparent implements RedstoneSignalEmitte
 		$world = $this->position->getWorld();
 
 		$intersectionAABB = $this->getActivationBox();
-		$activatingEntities = $this->filterIrrelevantEntities($world->getNearbyEntities($intersectionAABB));
+		$engine = $world->getRedstoneEngine();
+		if($engine !== null && $engine->isTicking()){
+			$activatingEntities = $engine->collectEntities($this, $intersectionAABB,
+				PressurePlateUpdateEvent::hasHandlers() ? PHP_INT_MAX : $this->getMaximumSignalEntityCount(),
+				fn(Entity $entity) : bool => $this->filterIrrelevantEntities([$entity]) !== []
+			);
+			if($activatingEntities === null){
+				$this->scheduleUpdate(1);
+				return;
+			}
+		}else{
+			$activatingEntities = $this->filterIrrelevantEntities($world->getNearbyEntities($intersectionAABB));
+		}
 
 		//if an irrelevant entity is inside the full cube space of the pressure plate but not activating the plate,
 		//it will cause scheduled updates on the plate every tick. We don't want to fire events in this case if the
@@ -147,7 +186,7 @@ abstract class PressurePlate extends Transparent implements RedstoneSignalEmitte
 				}
 			}
 			if($pressedChange ?? $this->hasOutputSignal()){
-				$world->scheduleDelayedBlockUpdate($this->position, $this->deactivationDelayTicks);
+				$this->scheduleUpdate($this->deactivationDelayTicks);
 			}
 		}
 	}

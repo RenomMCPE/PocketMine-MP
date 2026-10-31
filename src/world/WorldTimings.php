@@ -2,19 +2,19 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *     _             _               
+ *    / \   _ __ ___ | |__   ___ _ __ 
+ *   / _ \ | '_ ` _ \| '_ \ / _ \ '__|
+ *  / ___ \| | | | | | |_) |  __/ |   
+ * /_/   \_\_| |_| |_|_.__/ \___|_|   
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @author AmberPM Team
+ * @link https://github.com/Amber-PM/Amber
  *
  *
  */
@@ -34,6 +34,7 @@ class WorldTimings{
 	public TimingsHandler $doChunkUnload;
 	public TimingsHandler $scheduledBlockUpdates;
 	public TimingsHandler $neighbourBlockUpdates;
+	public TimingsHandler $redstone;
 	public TimingsHandler $randomChunkUpdates;
 	public TimingsHandler $randomChunkUpdatesChunkSelection;
 	public TimingsHandler $doChunkGC;
@@ -78,6 +79,7 @@ class WorldTimings{
 		$this->doChunkUnload = self::newTimer($name, "Unload Chunks");
 		$this->scheduledBlockUpdates = self::newTimer($name, "Scheduled Block Updates");
 		$this->neighbourBlockUpdates = self::newTimer($name, "Neighbour Block Updates");
+		$this->redstone = self::newTimer($name, "Redstone Updates");
 		$this->randomChunkUpdates = self::newTimer($name, "Random Chunk Updates");
 		$this->randomChunkUpdatesChunkSelection = self::newTimer($name, "Random Chunk Updates - Chunk Selection");
 		$this->doChunkGC = self::newTimer($name, "Garbage Collection");

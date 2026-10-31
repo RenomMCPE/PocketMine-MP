@@ -2,19 +2,19 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *     _             _               
+ *    / \   _ __ ___ | |__   ___ _ __ 
+ *   / _ \ | '_ ` _ \| '_ \ / _ \ '__|
+ *  / ___ \| | | | | | |_) |  __/ |   
+ * /_/   \_\_| |_| |_|_.__/ \___|_|   
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @author AmberPM Team
+ * @link https://github.com/Amber-PM/Amber
  *
  *
  */
@@ -30,9 +30,11 @@ use pocketmine\block\utils\Lightable;
 use pocketmine\block\utils\LightableTrait;
 use pocketmine\block\utils\PoweredByRedstone;
 use pocketmine\block\utils\PoweredByRedstoneTrait;
+use pocketmine\block\utils\RedstoneReceiver;
 use pocketmine\data\runtime\RuntimeDataDescriber;
+use pocketmine\world\redstone\RedstoneEngine;
 
-class CopperBulb extends Opaque implements CopperMaterial, Lightable, PoweredByRedstone{
+class CopperBulb extends Opaque implements CopperMaterial, Lightable, PoweredByRedstone, RedstoneReceiver{
 	use CopperTrait;
 	use PoweredByRedstoneTrait;
 	use LightableTrait{
@@ -67,5 +69,12 @@ class CopperBulb extends Opaque implements CopperMaterial, Lightable, PoweredByR
 		}
 
 		return 0;
+	}
+
+	public function onRedstoneUpdate(RedstoneEngine $engine) : void{
+		$powered = $engine->getReceivedPower($this->position) > 0;
+		if($powered !== $this->powered){
+			$engine->getWorld()->setBlock($this->position, $this->togglePowered($powered));
+		}
 	}
 }

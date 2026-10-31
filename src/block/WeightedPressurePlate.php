@@ -2,19 +2,19 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *     _             _
+ *    / \   _ __ ___ | |__   ___ _ __
+ *   / _ \ | '_ ` _ \| '_ \ / _ \ '__|
+ *  / ___ \| | | | | | |_) |  __/ |
+ * /_/   \_\_| |_| |_|_.__/ \___|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @author AmberPM Team
+ * @link https://github.com/Amber-PM/Amber
  *
  *
  */
@@ -25,12 +25,15 @@ namespace pocketmine\block;
 
 use pocketmine\block\utils\AnalogRedstoneSignalEmitter;
 use pocketmine\block\utils\AnalogRedstoneSignalEmitterTrait;
+use pocketmine\block\utils\RedstoneSource;
+use pocketmine\math\Facing;
+use pocketmine\world\redstone\RedstoneEngine;
 use function ceil;
 use function count;
 use function max;
 use function min;
 
-class WeightedPressurePlate extends PressurePlate implements AnalogRedstoneSignalEmitter{
+class WeightedPressurePlate extends PressurePlate implements AnalogRedstoneSignalEmitter, RedstoneSource{
 	use AnalogRedstoneSignalEmitterTrait;
 
 	private readonly float $signalStrengthFactor;
@@ -47,6 +50,10 @@ class WeightedPressurePlate extends PressurePlate implements AnalogRedstoneSigna
 		return $this->signalStrength > 0;
 	}
 
+	protected function getMaximumSignalEntityCount() : int{
+		return $this->signalStrengthFactor > 0 ? (int) ceil(15 / $this->signalStrengthFactor) : 1;
+	}
+
 	protected function calculatePlateState(array $entities) : array{
 		$newSignalStrength = min(15, max(0,
 			(int) ceil(count($entities) * $this->signalStrengthFactor)
@@ -60,5 +67,9 @@ class WeightedPressurePlate extends PressurePlate implements AnalogRedstoneSigna
 			(clone $this)->setOutputSignalStrength($newSignalStrength),
 			$wasActive !== $isActive ? $isActive : null
 		];
+	}
+
+	public function getRedstoneOutput(int $face, bool $strongOnly, RedstoneEngine $engine) : int{
+		return !$strongOnly || $face === Facing::DOWN ? $this->signalStrength : 0;
 	}
 }

@@ -886,8 +886,15 @@ final class BlockTypeIds{
 	public const CINNABAR_BRICK_SLAB = 10855;
 	public const CINNABAR_BRICK_STAIRS = 10856;
 	public const CINNABAR_BRICK_WALL = 10857;
+	public const DISPENSER = 10858;
+	public const DROPPER = 10859;
+	public const PISTON = 10860;
+	public const STICKY_PISTON = 10861;
+	public const PISTON_HEAD = 10862;
+	public const HONEY_BLOCK = 10863;
+	public const MOVING_BLOCK = 10864;
 
-	public const FIRST_UNUSED_BLOCK_ID = 10858;
+	public const FIRST_UNUSED_BLOCK_ID = 10865;
 
 	private static int $nextDynamicId = self::FIRST_UNUSED_BLOCK_ID;
 

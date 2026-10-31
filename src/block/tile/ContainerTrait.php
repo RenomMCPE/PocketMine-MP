@@ -2,19 +2,19 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *     _             _
+ *    / \   _ __ ___ | |__   ___ _ __
+ *   / _ \ | '_ ` _ \| '_ \ / _ \ '__|
+ *  / ___ \| | | | | | |_) |  __/ |
+ * /_/   \_\_| |_| |_|_.__/ \___|_|
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * @author AmberPM Team
+ * @link https://github.com/Amber-PM/Amber
  *
  *
  */
@@ -31,7 +31,11 @@ use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\nbt\UnexpectedTagTypeException;
+use pocketmine\network\mcpe\NetworkSession;
+use pocketmine\player\Player;
 use pocketmine\world\Position;
+use WeakReference;
+use function spl_object_id;
 
 /**
  * This trait implements most methods in the {@link Container} interface. It should only be used by Tiles.
@@ -40,7 +44,38 @@ trait ContainerTrait{
 	/** @var string|null */
 	private $lock = null;
 
+	private array $pendingMovementCloses = [];
+
 	abstract public function getRealInventory() : Inventory;
+
+	abstract public function getInventory() : Inventory;
+
+	private function trackMovementClose(Player $viewer) : void{
+		$session = $viewer->getNetworkSession();
+		$manager = $session->getInvManager();
+		if($manager !== null){
+			$this->pendingMovementCloses[spl_object_id($session)] = [WeakReference::create($session), $manager->getCurrentWindowId()];
+		}
+	}
+
+	public function closeViewersForMovement() : bool{
+		$viewers = $this->getInventory()->getViewers() + $this->getRealInventory()->getViewers();
+		$pair = $this instanceof Chest ? $this->getPair() : null;
+		foreach($viewers as $viewer){
+			$this->trackMovementClose($viewer);
+			$pair?->trackMovementClose($viewer);
+		}
+		foreach($viewers as $viewer){
+			$viewer->removeCurrentWindow();
+		}
+		foreach($this->pendingMovementCloses as $key => [$reference, $id]){
+			$session = $reference->get();
+			if(!$session instanceof NetworkSession || !$session->isConnected() || !$session->getInvManager()?->isWindowClosePending($id)){
+				unset($this->pendingMovementCloses[$key]);
+			}
+		}
+		return $this->pendingMovementCloses === [] && $this->getInventory()->getViewers() === [] && $this->getRealInventory()->getViewers() === [];
+	}
 
 	protected function loadItems(CompoundTag $tag) : void{
 		try{

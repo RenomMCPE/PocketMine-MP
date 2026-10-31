@@ -25,6 +25,7 @@ namespace pocketmine\world;
 
 use pocketmine\block\Block;
 use pocketmine\block\RuntimeBlockStateRegistry;
+use pocketmine\block\MovingBlock;
 use pocketmine\block\TNT;
 use pocketmine\block\utils\SupportType;
 use pocketmine\block\VanillaBlocks;
@@ -244,6 +245,12 @@ class Explosion{
 
 		foreach($this->affectedBlocks as $hash => $block){
 			$pos = $block->getPosition();
+			if($block instanceof MovingBlock){
+				$block = $block->materialize();
+				if($block === null){
+					continue;
+				}
+			}
 			if($block instanceof TNT){
 				$block->ignite(mt_rand(10, 30));
 			}else{

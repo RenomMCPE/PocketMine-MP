@@ -215,6 +215,11 @@ chunk-generation:
 ticks-per:
   autosave: 6000
 
+redstone:
+  #Redstone wire, torches, repeaters, comparators, ... Observers are not.
+  enabled: true
+  #Redstone positions evaluated per tick in each world.
+  max-updates-per-tick: 2000
 backups:
   #Automatic world backups, as zip files in backups/<world>/. /world backup [world] makes one any time.
   #To restore one, stop the server and unzip it into worlds/<world>/ in place of the world's folder.

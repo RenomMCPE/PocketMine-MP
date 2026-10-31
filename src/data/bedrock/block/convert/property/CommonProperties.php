@@ -82,6 +82,9 @@ final class CommonProperties{
 	/** @phpstan-var ValueFromIntProperty<AnyFacing, int> */
 	public readonly ValueFromIntProperty $anyFacingClassic;
 
+	/** @phpstan-var ValueFromIntProperty<AnyFacing, int> */
+	public readonly ValueFromIntProperty $anyFacingPiston;
+
 	/** @phpstan-var ValueSetFromIntProperty<MultiAnyFacing, int> */
 	public readonly ValueSetFromIntProperty $multiFacingFlags;
 
@@ -254,6 +257,12 @@ final class CommonProperties{
 		$this->anyFacingClassic = new ValueFromIntProperty(
 			StateNames::FACING_DIRECTION,
 			$vm->facing,
+			fn(AnyFacing $b) => $b->getFacing(),
+			fn(AnyFacing $b, int $v) => $b->setFacing($v)
+		);
+		$this->anyFacingPiston = new ValueFromIntProperty(
+			StateNames::FACING_DIRECTION,
+			$vm->facingEndRod,
 			fn(AnyFacing $b) => $b->getFacing(),
 			fn(AnyFacing $b, int $v) => $b->setFacing($v)
 		);
