@@ -299,9 +299,11 @@ class Arrow extends Projectile{
 			$this->piercedEntityIds[$entityHit->getId()] = true;
 		}
 		parent::onHitEntity($entityHit, $hitResult);
-		if($this->hitBlocked || ($this->lastDamageEvent !== null && $this->lastDamageEvent->isCancelled())){
-			return;
-		}
+		// fork fix: onHitEntity was ported from Amber with two phantom property
+		// references ($this->hitBlocked, $this->lastDamageEvent) that exist in
+		// neither this fork nor pmmp nor NetherGames upstream — every arrow entity
+		// hit crashed the server. Aligned with the NetherGames reference impl;
+		// the potion/pearl-style side effects run when the target survives.
 		if(!$entityHit->isAlive()){
 			return;
 		}
