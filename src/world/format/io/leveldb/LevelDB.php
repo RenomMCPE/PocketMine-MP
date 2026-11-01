@@ -332,8 +332,24 @@ class LevelDB extends BaseWorldProvider implements WritableWorldProvider{
 			}
 		}
 		if(!$stream->feof()){
-			//maybe bad output produced by a third-party conversion tool like Chunker
-			$logger->error("Unexpected trailing data after 3D biomes data");
+			//Newer game versions write biome palettes for sections outside our supported
+			//y-range (and third-party tools like Chunker may pad as well). Consume and
+			//discard the excess palettes instead of spamming an error for every chunk.
+			$extraPalettes = 0;
+			try{
+				while(!$stream->feof()){
+					$bitsPerBlock = $stream->getByte() >> 1;
+					if($bitsPerBlock !== 127){
+						self::deserializeBiomePalette($stream, $bitsPerBlock);
+					}
+					$extraPalettes++;
+				}
+			}catch(BinaryDataException $e){
+				$logger->debug("Discarded unparseable trailing data after 3D biomes: " . $e->getMessage());
+			}
+			if($extraPalettes > 0){
+				$logger->debug("Discarded $extraPalettes excess 3D biome palette(s) outside the supported y-range");
+			}
 		}
 
 		return $result;
