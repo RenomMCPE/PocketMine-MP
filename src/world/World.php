@@ -1592,7 +1592,7 @@ class World implements ChunkManager{
 		$timings->startTiming();
 
 		$this->provider->getWorldData()->setTime($this->time);
-		$this->saveChunks();
+		$this->saveChunks($force);
 		$this->provider->getWorldData()->save();
 
 		$timings->stopTiming();
@@ -1600,7 +1600,7 @@ class World implements ChunkManager{
 		return true;
 	}
 
-	public function saveChunks() : void{
+	public function saveChunks(bool $force = false) : void{
 		$this->timings->syncChunkSave->startTiming();
 		try{
 			foreach($this->chunks as $chunkHash => $chunk){
@@ -1610,7 +1610,9 @@ class World implements ChunkManager{
 					$chunk->isPopulated(),
 					array_map(fn(Entity $e) => $e->saveNBT(), array_values(array_filter($this->getChunkEntities($chunkX, $chunkZ), fn(Entity $e) => $e->canSaveWithChunk()))),
 					array_map(fn(Tile $t) => $t->saveNBT(), array_values($chunk->getTiles())),
-				), $chunk->getTerrainDirtyFlags());
+				// Forced saves write every chunk in full: a silently-dropped LevelDB write that
+				// already cleared the dirty flags would otherwise never be retried (D63).
+				), $force ? Chunk::DIRTY_FLAGS_ALL : $chunk->getTerrainDirtyFlags());
 				$chunk->clearTerrainDirtyFlags();
 			}
 		}finally{
