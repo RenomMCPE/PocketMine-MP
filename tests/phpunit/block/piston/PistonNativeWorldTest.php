@@ -732,7 +732,9 @@ final class PistonNativeWorldTest extends TestCase{
 		$world->setBlockAt(8, 64, 8, VanillaBlocks::STICKY_PISTON()->setFacing(Facing::EAST));
 		$world->setBlockAt(8, 63, 8, VanillaBlocks::REDSTONE());
 		$piston = $world->getBlockAt(8, 64, 8);
+		self::assertInstanceOf(\pocketmine\block\Piston::class, $piston);
 		$piston->onRedstoneUpdate($engine);
+		$piston->onRedstoneScheduledUpdate($engine);
 		$tile = $world->getTileAt(8, 64, 8);
 		self::assertInstanceOf(\pocketmine\block\tile\PistonArm::class, $tile);
 		self::assertTrue($tile->isMoving());
@@ -746,11 +748,15 @@ final class PistonNativeWorldTest extends TestCase{
 		self::assertSame(1, $tile->saveNBT()->getByte("State"));
 		self::assertSame(0.5, $tile->saveNBT()->getFloat("Progress"));
 		$engine->tick(2);
+		$engine->tick(3);
+		//the retract waits for the start delay
+		self::assertSame(2, $tile->saveNBT()->getByte("State"));
+		$engine->tick(4);
 		self::assertSame(3, $tile->saveNBT()->getByte("State"));
 		self::assertFalse($world->getBlockAt(8, 64, 8)->isExtended());
 		self::assertTrue(PistonMoveRules::isImmovable($world->getBlockAt(8, 64, 8)));
-		$engine->tick(3);
-		$engine->tick(4);
+		$engine->tick(5);
+		$engine->tick(6);
 		self::assertFalse($tile->isMoving());
 		self::assertSame(0, $tile->saveNBT()->getByte("State"));
 		self::assertSame(0.0, $tile->saveNBT()->getFloat("Progress"));
@@ -904,7 +910,10 @@ final class PistonNativeWorldTest extends TestCase{
 		(new \ReflectionProperty(World::class, "redstone"))->setValue($world, $engine);
 		$world->setBlockAt(15, 64, 8, VanillaBlocks::PISTON()->setFacing(Facing::EAST));
 		$world->setBlockAt(15, 63, 8, VanillaBlocks::REDSTONE());
-		$world->getBlockAt(15, 64, 8)->onRedstoneUpdate($engine);
+		$pistonEast = $world->getBlockAt(15, 64, 8);
+		self::assertInstanceOf(\pocketmine\block\Piston::class, $pistonEast);
+		$pistonEast->onRedstoneUpdate($engine);
+		$pistonEast->onRedstoneScheduledUpdate($engine);
 		$tile = $world->getTileAt(15, 64, 8);
 		self::assertInstanceOf(\pocketmine\block\tile\PistonArm::class, $tile);
 		$chunks = new \ReflectionProperty(World::class, "chunks");
