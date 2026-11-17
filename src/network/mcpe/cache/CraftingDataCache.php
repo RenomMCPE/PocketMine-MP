@@ -23,7 +23,6 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\cache;
 
-use pmmp\encoding\BE;
 use pocketmine\crafting\CraftingManager;
 use pocketmine\crafting\FurnaceType;
 use pocketmine\crafting\MetaWildcardRecipeIngredient;
@@ -98,7 +97,7 @@ final class CraftingDataCache{
 		$protocolId = $this->getProtocolId();
 		$makeRecipeId = static fn(int $recipeNetId) : string => $protocolId >= ProtocolInfo::PROTOCOL_1_26_40 ?
 			Uuid::uuid4()->toString() :
-			BE::packUnsignedInt($recipeNetId); //TODO: this should probably be changed to something human-readable
+			(string) $recipeNetId; //the ID is transmitted as a length-prefixed string - packed bytes would be invalid UTF-8 for net IDs >= 128 and break the client's recipe list
 
 		$noUnlockingRequirement = new RecipeUnlockingRequirement(RecipeUnlockingContext::ALWAYS_UNLOCKED, null);
 		$recipeNetId = self::RECIPE_ID_OFFSET;
